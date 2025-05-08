@@ -10,7 +10,7 @@ void main() async {
   const serverUrl = 'https://parseapi.back4app.com';
 
   await Parse().initialize(appId, serverUrl, clientKey: clientKey, autoSendSessionId: true);
-
+  final currentUser = await ParseUser.currentUser() as ParseUser?;
   runApp(const MyApp());
 }
 

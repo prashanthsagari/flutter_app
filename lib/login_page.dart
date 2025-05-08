@@ -1,11 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
+// import 'package:simple_app/persons_list.dart';
 import 'dart:math';
+import 'package:simple_app/pages/persons_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
   State<LoginPage> createState() => _LoginPageState();
+
+  // --- Add this static method ---
+  static Future<void> logout(BuildContext context) async {
+    await ParseUser.currentUser();
+    if (context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+            (route) => false,
+      );
+    }
+  }
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -42,9 +55,21 @@ class _LoginPageState extends State<LoginPage> {
 
       final user = ParseUser(usernameToLogin, password, null);
       final response = await user.login();
+      if (response.success) {
+        _showMessage("Login successful!");
+
+        // Navigate to persons page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => PersonsPage()),
+        );
+      } else {
+        _showMessage(response.error!.message);
+      }
       _showMessage(response.success ? "Login successful!" : response.error!.message);
     }
   }
+
 
 
   Future<void> resetPassword() async {
@@ -74,6 +99,10 @@ class _LoginPageState extends State<LoginPage> {
         final currentUser = await ParseUser.currentUser();
         if (currentUser != null) {
           await currentUser.logout();
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => LoginPage()),
+                (route) => false,
+          );
         }
 
         _showMessage("Password reset successful.\nNew Password: $newPassword");

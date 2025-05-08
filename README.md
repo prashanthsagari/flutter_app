@@ -15,3 +15,15 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 "# flutter_app" 
+
+
+flutter pub get
+
+flutter run
+
+flutter devices           # List available devices
+flutter run -d DEVICE_ID # Replace with actual device ID
+flutter build apk
+
+flutter build ios
+
