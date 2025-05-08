@@ -71,56 +71,23 @@ class _LoginPageState extends State<LoginPage> {
   }
 
 
-
   Future<void> resetPassword() async {
     final username = usernameController.text.trim();
 
     if (username.isEmpty) {
-      _showMessage("Please enter your username.");
+      _showMessage("Please enter your username or email.");
       return;
     }
 
-    // Step 1: Query user by username
-    final query = QueryBuilder(ParseUser.forQuery())
-      ..whereEqualTo('username', username);
+    final user = ParseUser(null, null, username); // username can be email if your Parse server is configured that way
+    final response = await user.requestPasswordReset();
 
-    final response = await query.query();
-
-    if (response.success && response.results != null && response.results!.isNotEmpty) {
-      final user = response.results!.first as ParseUser;
-
-      // Step 2: Generate new password and update
-      final newPassword = _generateRandomPassword();
-      user.set('password', newPassword);
-      final saveResponse = await user.save();
-
-      if (saveResponse.success) {
-        // Step 3: Logout current user to avoid InvalidSessionToken
-        final currentUser = await ParseUser.currentUser();
-        if (currentUser != null) {
-          await currentUser.logout();
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => LoginPage()),
-                (route) => false,
-          );
-        }
-
-        _showMessage("Password reset successful.\nNew Password: $newPassword");
-      } else {
-        _showMessage("Failed to update password: ${saveResponse.error!.message}");
-      }
+    if (response.success) {
+      _showMessage("Password reset link sent to your email.");
     } else {
-      _showMessage("User not found with that username.");
+      _showMessage("Failed to send reset email: ${response.error?.message}");
     }
   }
-
-
-  String _generateRandomPassword({int length = 8}) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final rand = Random();
-    return List.generate(length, (index) => chars[rand.nextInt(chars.length)]).join();
-  }
-
 
   void _showMessage(String message) {
     showDialog(
@@ -188,7 +155,7 @@ class _LoginPageState extends State<LoginPage> {
           title: const Text("Reset Password"),
           content: TextField(
             controller: usernameController,
-            decoration: const InputDecoration(labelText: "Enter your username"),
+            decoration: const InputDecoration(labelText: "Enter your email"),
           ),
           actions: [
             TextButton(

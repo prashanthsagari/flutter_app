@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:simple_app/module/person.dart';
-import 'package:simple_app/login_page.dart';
+import 'package:simple_app/services/login_page.dart';
 
 
 class PersonsPage extends StatefulWidget {
@@ -210,17 +210,20 @@ class _PersonsPageState extends State<PersonsPage> {
     filteredPersons.isNotEmpty ? filteredPersons.sublist(start, end) : [];
 
     return Scaffold(
-      appBar: AppBar(title: const Text("All Person Details"), automaticallyImplyLeading: false, centerTitle: true),
+      appBar: AppBar(title: const Text("All Person Details"), automaticallyImplyLeading: false, centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: "Logout",
+              onPressed: () => LoginPage.logout(context),
+            ),
+          ]),
 
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
         children: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: "Logout",
-            onPressed: () => LoginPage.logout(context),
-          ),
+
           Padding(
             padding: const EdgeInsets.all(12),
             child: ElevatedButton.icon(

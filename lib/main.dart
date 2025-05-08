@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
-import 'login_page.dart';
+import 'services/login_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
