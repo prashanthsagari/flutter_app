@@ -3,7 +3,6 @@ import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'package:simple_app/module/person.dart';
 import 'package:simple_app/services/login_page.dart';
 
-
 class PersonsPage extends StatefulWidget {
   const PersonsPage({super.key});
 
@@ -22,10 +21,9 @@ class _PersonsPageState extends State<PersonsPage> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  String sortBy = 'name'; // Default sort by name
+  String sortBy = 'name';
   bool isAscending = true;
 
-  // Pagination
   int currentPage = 0;
   final int pageSize = 5;
 
@@ -82,9 +80,7 @@ class _PersonsPageState extends State<PersonsPage> {
             children: [
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Name',
-                ),
+                decoration: const InputDecoration(labelText: 'Name'),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Name is required';
@@ -94,9 +90,7 @@ class _PersonsPageState extends State<PersonsPage> {
               ),
               TextFormField(
                 controller: ageController,
-                decoration: const InputDecoration(
-                  labelText: 'Age',
-                ),
+                decoration: const InputDecoration(labelText: 'Age'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   final age = int.tryParse(value ?? '');
@@ -112,7 +106,6 @@ class _PersonsPageState extends State<PersonsPage> {
           ),
         ),
         actions: [
-
           TextButton(
             onPressed: () async {
               if (_formKey.currentState?.validate() ?? false) {
@@ -164,11 +157,12 @@ class _PersonsPageState extends State<PersonsPage> {
         .toList();
     _sortPersons(sortBy, isAscending: isAscending, updateState: false);
     setState(() {
-      currentPage = 0; // Reset to first page on search
+      currentPage = 0;
     });
   }
 
-  void _sortPersons(String sortBy, {bool? isAscending, bool updateState = true}) {
+  void _sortPersons(String sortBy,
+      {bool? isAscending, bool updateState = true}) {
     if (isAscending == null) {
       if (this.sortBy == sortBy) {
         this.isAscending = !this.isAscending;
@@ -200,7 +194,6 @@ class _PersonsPageState extends State<PersonsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Pagination logic
     final totalPages = (filteredPersons.length / pageSize).ceil();
     final int start = currentPage * pageSize;
     final int end = (start + pageSize) > filteredPersons.length
@@ -210,113 +203,143 @@ class _PersonsPageState extends State<PersonsPage> {
     filteredPersons.isNotEmpty ? filteredPersons.sublist(start, end) : [];
 
     return Scaffold(
-      appBar: AppBar(title: const Text("All Person Details"), automaticallyImplyLeading: false, centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: "Logout",
-              onPressed: () => LoginPage.logout(context),
-            ),
-          ]),
-
+      appBar: AppBar(
+        title: const Text("All Person Details"),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: "Logout",
+            onPressed: () => LoginPage.logout(context),
+          ),
+        ],
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: ElevatedButton.icon(
-              onPressed: () => _showForm(),
-              icon: const Icon(Icons.add),
-              label: const Text("Add Person"),
+          : Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.add),
+                label: const Text("Add Person"),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () => _showForm(),
+              ),
             ),
-
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
+            const SizedBox(height: 10),
+            TextField(
               controller: searchController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Search by Name',
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () => _sortPersons('name'),
-                child: Text("Sort by Name${_sortArrow('name')}"),
-              ),
-              ElevatedButton(
-                onPressed: () => _sortPersons('age'),
-                child: Text("Sort by Age${_sortArrow('age')}"),
-              ),
-            ],
-          ),
-          Expanded(
-            child: currentPagePersons.isEmpty
-                ? const Center(child: Text("No persons found."))
-                : ListView.builder(
-              itemCount: currentPagePersons.length,
-              itemBuilder: (_, index) {
-                final person = currentPagePersons[index];
-                return ListTile(
-                  title: Text(person.name),
-                  subtitle: Text("Age: ${person.age}"),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _showForm(person: person),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => deletePerson(person),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          // Pagination controls at the bottom center
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  onPressed: currentPage > 0
-                      ? () {
-                    setState(() {
-                      currentPage--;
-                    });
-                  }
-                      : null,
+                ElevatedButton.icon(
+                  icon: Icon(
+                    sortBy == 'name'
+                        ? (isAscending
+                        ? Icons.arrow_upward
+                        : Icons.arrow_downward)
+                        : Icons.sort_by_alpha,
+                  ),
+                  label: Text("Sort by Name${_sortArrow('name')}"),
+                  onPressed: () => _sortPersons('name'),
                 ),
-                Text(
-                  'Page ${totalPages == 0 ? 0 : currentPage + 1} of $totalPages',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right),
-                  onPressed: (currentPage + 1) < totalPages
-                      ? () {
-                    setState(() {
-                      currentPage++;
-                    });
-                  }
-                      : null,
+                ElevatedButton.icon(
+                  icon: Icon(
+                    sortBy == 'age'
+                        ? (isAscending
+                        ? Icons.arrow_upward
+                        : Icons.arrow_downward)
+                        : Icons.sort,
+                  ),
+                  label: Text("Sort by Age${_sortArrow('age')}"),
+                  onPressed: () => _sortPersons('age'),
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Expanded(
+              child: currentPagePersons.isEmpty
+                  ? const Center(child: Text("No persons found."))
+                  : ListView.builder(
+                itemCount: currentPagePersons.length,
+                itemBuilder: (_, index) {
+                  final person = currentPagePersons[index];
+                  return Card(
+                    elevation: 3,
+                    margin:
+                    const EdgeInsets.symmetric(vertical: 6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      title: Text(person.name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600)),
+                      subtitle: Text("Age: ${person.age}"),
+                      trailing: Wrap(
+                        spacing: 4,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit,
+                                color: Colors.blueAccent),
+                            onPressed: () =>
+                                _showForm(person: person),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete,
+                                color: Colors.redAccent),
+                            onPressed: () =>
+                                deletePerson(person),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    onPressed: currentPage > 0
+                        ? () => setState(() => currentPage--)
+                        : null,
+                  ),
+                  Text(
+                    'Page ${totalPages == 0 ? 0 : currentPage + 1} of $totalPages',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: (currentPage + 1) < totalPages
+                        ? () => setState(() => currentPage++)
+                        : null,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

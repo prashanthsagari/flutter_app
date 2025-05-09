@@ -7,7 +7,6 @@ class LoginPage extends StatefulWidget {
   @override
   State<LoginPage> createState() => _LoginPageState();
 
-  // --- Add this static method ---
   static Future<void> logout(BuildContext context) async {
     await ParseUser.currentUser();
     if (context.mounted) {
@@ -25,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final usernameController = TextEditingController();
   bool isRegistering = false;
+  bool passwordVisible = false;
 
   // --- Validation Functions ---
   String? validateUsername(String username) {
@@ -53,15 +53,12 @@ class _LoginPageState extends State<LoginPage> {
     return null;
   }
 
-
-
   Future<void> handleAuth() async {
-    final input = usernameOrEmailController.text.trim(); // Can be username or email
+    final input = usernameOrEmailController.text.trim();
     final password = passwordController.text.trim();
     final email = emailController.text.trim();
 
     if (isRegistering) {
-      // Registration validation
       final usernameError = validateUsername(input);
       final passwordError = validatePassword(password);
       final emailError = validateEmail(email);
@@ -83,37 +80,11 @@ class _LoginPageState extends State<LoginPage> {
       final response = await user.signUp();
       _showMessage(response.success ? "Registration successful!" : response.error!.message);
     } else {
-      // Login validation
       String? usernameToLogin = input;
       final user = ParseUser(usernameToLogin, password, null);
       final response = await user.login();
-
-
-      // if (input.contains('@')) {
-      //   // Call cloud function to get username from email
-      //   final result = await ParseCloudFunction('getUsernameByEmail')
-      //       .execute(parameters: {'email': input});
-      //
-      //   if (result.success && result.result != null) {
-      //     usernameToLogin = result.result;
-      //   } else {
-      //     _showMessage("No user found with this email.");
-      //     return;
-      //   }
-      // }
-
-      // final passwordError = validatePassword(password);
-      // if (passwordError != null) {
-      //   _showMessage(passwordError);
-      //   return;
-      // }
-
-      // final user = ParseUser(usernameToLogin, password, null);
-      // final response = await user.login();
       if (response.success) {
         _showMessage("Login successful!");
-
-        // Navigate to persons page
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => PersonsPage()),
@@ -124,8 +95,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-
-
   Future<void> resetPassword() async {
     final username = usernameController.text.trim();
 
@@ -134,7 +103,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    final user = ParseUser(null, null, username); // username can be email if your Parse server is configured that way
+    final user = ParseUser(null, null, username);
     final response = await user.requestPasswordReset();
 
     if (response.success) {
@@ -156,52 +125,101 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(isRegistering ? "Register" : "Login")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            TextField(
-              controller: usernameOrEmailController,
-              decoration: InputDecoration(
-                labelText: isRegistering ? "Username" : "Username",
+      backgroundColor: theme.colorScheme.surfaceVariant,
+      appBar: AppBar(
+        title: Text(isRegistering ? "Register" : "Login"),
+        centerTitle: true,
+        backgroundColor: theme.colorScheme.primaryContainer,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Card(
+            elevation: 8,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.person, size: 64, color: theme.colorScheme.primary),
+                  const SizedBox(height: 16),
+                  Text(
+                    isRegistering ? "Create Account" : "Welcome Back",
+                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: usernameOrEmailController,
+                    decoration: InputDecoration(
+                      labelText: isRegistering ? "Username" : "Username",
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: !passwordVisible,
+                    decoration: InputDecoration(
+                      labelText: "Password",
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(passwordVisible ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => setState(() => passwordVisible = !passwordVisible),
+                      ),
+                    ),
+                  ),
+                  if (isRegistering) ...[
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: emailController,
+                      decoration: const InputDecoration(
+                        labelText: "Email",
+                        prefixIcon: Icon(Icons.email_outlined),
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: Icon(isRegistering ? Icons.person_add : Icons.login),
+                      label: Text(isRegistering ? "Register" : "Login"),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: handleAuth,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: () => setState(() => isRegistering = !isRegistering),
+                    child: Text(isRegistering
+                        ? "Already have an account? Login"
+                        : "No account? Register"),
+                  ),
+                  if (!isRegistering)
+                    TextButton(
+                      onPressed: _showPasswordResetDialog,
+                      child: const Text("Forgot Password?"),
+                    ),
+                ],
               ),
             ),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(labelText: "Password"),
-              obscureText: true,
-            ),
-            if (isRegistering)
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(labelText: "Email"),
-              ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: handleAuth,
-              child: Text(isRegistering ? "Register" : "Login"),
-            ),
-            TextButton(
-              onPressed: () => setState(() => isRegistering = !isRegistering),
-              child: Text(isRegistering ? "Already have an account? Login" : "No account? Register"),
-            ),
-            // Forgot password section
-            if (!isRegistering)
-              TextButton(
-                onPressed: () {
-                  _showPasswordResetDialog();
-                },
-                child: const Text("Forgot Password?"),
-              ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  // Dialog for password reset
   void _showPasswordResetDialog() {
     showDialog(
       context: context,

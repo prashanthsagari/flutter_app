@@ -10,7 +10,6 @@ void main() async {
   const serverUrl = 'https://parseapi.back4app.com';
 
   await Parse().initialize(appId, serverUrl, clientKey: clientKey, autoSendSessionId: true);
-  final currentUser = await ParseUser.currentUser() as ParseUser?;
   runApp(const MyApp());
 }
 
@@ -18,8 +17,13 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: LoginPage(),
+    return MaterialApp(
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        useMaterial3: true,
+      ),
+      home: const LoginPage(),
     );
   }
 }
+
