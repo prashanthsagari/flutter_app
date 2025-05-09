@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
-// import 'package:simple_app/persons_list.dart';
-import 'dart:math';
 import 'package:simple_app/pages/persons_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -28,33 +26,90 @@ class _LoginPageState extends State<LoginPage> {
   final usernameController = TextEditingController();
   bool isRegistering = false;
 
+  // --- Validation Functions ---
+  String? validateUsername(String username) {
+    if (username.length < 5 || username.length > 12) {
+      return 'Username must be between 5 and 12 characters';
+    }
+    return null;
+  }
+
+  String? validatePassword(String password) {
+    if (password.length < 6) {
+      return 'Password must be at least 6 characters long';
+    }
+    final alphanumeric = RegExp(r'^[a-zA-Z0-9]+$');
+    if (!alphanumeric.hasMatch(password)) {
+      return 'Password must be alphanumeric';
+    }
+    return null;
+  }
+
+  String? validateEmail(String email) {
+    final emailRegex = RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+    if (!emailRegex.hasMatch(email)) {
+      return 'Enter a valid email address';
+    }
+    return null;
+  }
+
+
+
   Future<void> handleAuth() async {
     final input = usernameOrEmailController.text.trim(); // Can be username or email
     final password = passwordController.text.trim();
     final email = emailController.text.trim();
 
     if (isRegistering) {
+      // Registration validation
+      final usernameError = validateUsername(input);
+      final passwordError = validatePassword(password);
+      final emailError = validateEmail(email);
+
+      if (usernameError != null) {
+        _showMessage(usernameError);
+        return;
+      }
+      if (passwordError != null) {
+        _showMessage(passwordError);
+        return;
+      }
+      if (emailError != null) {
+        _showMessage(emailError);
+        return;
+      }
+
       final user = ParseUser(input, password, email);
       final response = await user.signUp();
       _showMessage(response.success ? "Registration successful!" : response.error!.message);
     } else {
+      // Login validation
       String? usernameToLogin = input;
-
-      if (input.contains('@')) {
-        // Call cloud function to get username from email
-        final result = await ParseCloudFunction('getUsernameByEmail')
-            .execute(parameters: {'email': input});
-
-        if (result.success && result.result != null) {
-          usernameToLogin = result.result;
-        } else {
-          _showMessage("No user found with this email.");
-          return;
-        }
-      }
-
       final user = ParseUser(usernameToLogin, password, null);
       final response = await user.login();
+
+
+      // if (input.contains('@')) {
+      //   // Call cloud function to get username from email
+      //   final result = await ParseCloudFunction('getUsernameByEmail')
+      //       .execute(parameters: {'email': input});
+      //
+      //   if (result.success && result.result != null) {
+      //     usernameToLogin = result.result;
+      //   } else {
+      //     _showMessage("No user found with this email.");
+      //     return;
+      //   }
+      // }
+
+      // final passwordError = validatePassword(password);
+      // if (passwordError != null) {
+      //   _showMessage(passwordError);
+      //   return;
+      // }
+
+      // final user = ParseUser(usernameToLogin, password, null);
+      // final response = await user.login();
       if (response.success) {
         _showMessage("Login successful!");
 
@@ -66,16 +121,16 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         _showMessage(response.error!.message);
       }
-      _showMessage(response.success ? "Login successful!" : response.error!.message);
     }
   }
+
 
 
   Future<void> resetPassword() async {
     final username = usernameController.text.trim();
 
     if (username.isEmpty) {
-      _showMessage("Please enter your username or email.");
+      _showMessage("Please enter your username");
       return;
     }
 
@@ -110,7 +165,7 @@ class _LoginPageState extends State<LoginPage> {
             TextField(
               controller: usernameOrEmailController,
               decoration: InputDecoration(
-                labelText: isRegistering ? "Username" : "Username or Email",
+                labelText: isRegistering ? "Username" : "Username",
               ),
             ),
             TextField(
