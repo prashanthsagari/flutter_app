@@ -23,7 +23,7 @@ flutter run
 
 flutter devices           # List available devices
 flutter run -d DEVICE_ID # Replace with actual device ID
-flutter build apk
+flutter build apk --release
 
 flutter build ios
 

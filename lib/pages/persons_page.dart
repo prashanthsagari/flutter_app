@@ -18,6 +18,8 @@ class _PersonsPageState extends State<PersonsPage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController ageController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -39,6 +41,7 @@ class _PersonsPageState extends State<PersonsPage> {
     searchController.removeListener(_filterPersons);
     nameController.dispose();
     ageController.dispose();
+    emailController.dispose();
     searchController.dispose();
     super.dispose();
   }
@@ -64,9 +67,11 @@ class _PersonsPageState extends State<PersonsPage> {
     if (isEdit) {
       nameController.text = person.name;
       ageController.text = person.age.toString();
+      emailController.text = person.email;
     } else {
       nameController.clear();
       ageController.clear();
+      emailController.clear();
     }
 
     showDialog(
@@ -102,6 +107,20 @@ class _PersonsPageState extends State<PersonsPage> {
                   return null;
                 },
               ),
+              TextFormField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Email is required';
+                  }
+                  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                  if (!emailRegex.hasMatch(value.trim())) {
+                    return 'Enter a valid email';
+                  }
+                  return null;
+                },
+              ),
             ],
           ),
         ),
@@ -111,10 +130,12 @@ class _PersonsPageState extends State<PersonsPage> {
               if (_formKey.currentState?.validate() ?? false) {
                 final name = nameController.text.trim();
                 final age = int.parse(ageController.text.trim());
+                final email = emailController.text.trim();
 
                 final newPerson = person ?? Person();
                 newPerson.name = name;
                 newPerson.age = age;
+                newPerson.email = email;
 
                 final saveResult = await newPerson.save();
                 Navigator.pop(context);
@@ -291,7 +312,7 @@ class _PersonsPageState extends State<PersonsPage> {
                       title: Text(person.name,
                           style: const TextStyle(
                               fontWeight: FontWeight.w600)),
-                      subtitle: Text("Age: ${person.age}"),
+                      subtitle: Text("Age: ${person.age}\nEmail: ${person.email}"),
                       trailing: Wrap(
                         spacing: 4,
                         children: [
@@ -338,6 +359,7 @@ class _PersonsPageState extends State<PersonsPage> {
                 ],
               ),
             ),
+            const SizedBox(height: 30),
           ],
         ),
       ),

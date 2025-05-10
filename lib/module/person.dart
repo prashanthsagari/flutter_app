@@ -13,4 +13,7 @@ class Person extends ParseObject implements ParseCloneable {
 
   int get age => get<int>('age') ?? 0;
   set age(int value) => set<int>('age', value);
+
+  String get email => get<String>('email') ?? '';
+  set email(String email) => set<String>('email', email);
 }
