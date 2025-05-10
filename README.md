@@ -1,4 +1,8 @@
-# simple_app
+# Github link : 
+https://github.com/prashanthsagari/flutter_app
+# Powerpoint presentation link : https://github.com/prashanthsagari/flutter_app/blob/master/Cross%20Platform%20Application%20Development.pptx
+# Youtube link:  
+https://www.youtube.com/watch?v=zVd9w7J6EOM
 
 CRUD with security
 
