@@ -21,13 +21,13 @@ samples, guidance on mobile development, and a full API reference.
 "# flutter_app" 
 
 
-flutter pub get
+flutter pub get  
 
-flutter run
+flutter run  
 
-flutter devices           # List available devices
-flutter run -d DEVICE_ID # Replace with actual device ID
-flutter build apk --release
+flutter devices           # List available devices  
+flutter run -d DEVICE_ID # Replace with actual device ID  
+flutter build apk --release   
 
-flutter build ios
+flutter build ios  
 
